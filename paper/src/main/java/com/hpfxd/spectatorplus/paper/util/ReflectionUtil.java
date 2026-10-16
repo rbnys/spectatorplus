@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.jpenilla.reflectionremapper.ReflectionRemapper;
 
@@ -31,6 +32,15 @@ public class ReflectionUtil {
     private static Field AbstractContainerMenu$containerId;
     private static Field AbstractContainerMenu$dataSlots;
     private static Method DataSlot$get;
+
+    private static Method CraftItemStack$asNMSCopy;
+    private static Method CraftRegistry$getMinecraftRegistry;
+    private static Constructor<?> RegistryFriendlyByteBuf$init;
+    private static Field ItemStack$OPTIONAL_STREAM_CODEC;
+    private static Method StreamEncoder$encode;
+    private static Method Unpooled$buffer;
+    private static Method ByteBuf$readableBytes;
+    private static Method ByteBuf$readBytes;
 
     static {
         try {
@@ -203,5 +213,73 @@ public class ReflectionUtil {
         }
 
         return resultMap;
+    }
+
+    /*
+     * Item serialization
+     *
+     * Encodes a Bukkit ItemStack using Minecraft's {@code ItemStack.OPTIONAL_STREAM_CODEC} so that the bytes match
+     * what the Fabric client mod decodes in {@code CustomPacketCodecs}. Bukkit's {@code ItemStack#serializeAsBytes()}
+     * uses a different (compressed NBT) format and cannot be used here.
+     */
+    public static byte[] encodeItemStack(ItemStack bukkitItem) throws ReflectiveOperationException {
+        final Object nmsItem = asNMSCopy(bukkitItem);
+        final Object registryAccess = getMinecraftRegistry();
+
+        if (RegistryFriendlyByteBuf$init == null) {
+            final Class<?> rfbClass = Class.forName(REMAPPER.remapClassName("net.minecraft.network.RegistryFriendlyByteBuf"));
+            final Class<?> registryAccessClass = Class.forName(REMAPPER.remapClassName("net.minecraft.core.RegistryAccess"));
+            final Class<?> byteBufClass = Class.forName("io.netty.buffer.ByteBuf");
+            RegistryFriendlyByteBuf$init = rfbClass.getConstructor(byteBufClass, registryAccessClass);
+        }
+
+        if (ItemStack$OPTIONAL_STREAM_CODEC == null) {
+            final Class<?> itemStackClass = Class.forName(REMAPPER.remapClassName("net.minecraft.world.item.ItemStack"));
+            ItemStack$OPTIONAL_STREAM_CODEC = itemStackClass.getField(REMAPPER.remapFieldName(itemStackClass, "OPTIONAL_STREAM_CODEC"));
+        }
+
+        if (StreamEncoder$encode == null) {
+            final Class<?> streamEncoderClass = Class.forName(REMAPPER.remapClassName("net.minecraft.network.codec.StreamEncoder"));
+            final String encodeName = REMAPPER.remapMethodName(streamEncoderClass, "encode");
+            StreamEncoder$encode = streamEncoderClass.getMethod(encodeName, Object.class, Object.class);
+        }
+
+        if (Unpooled$buffer == null) {
+            Unpooled$buffer = Class.forName("io.netty.buffer.Unpooled").getMethod("buffer");
+        }
+
+        if (ByteBuf$readableBytes == null) {
+            final Class<?> byteBufClass = Class.forName("io.netty.buffer.ByteBuf");
+            ByteBuf$readableBytes = byteBufClass.getMethod("readableBytes");
+            ByteBuf$readBytes = byteBufClass.getMethod("readBytes", byte[].class);
+        }
+
+        final Object byteBuf = Unpooled$buffer.invoke(null);
+        final Object registryFriendlyByteBuf = RegistryFriendlyByteBuf$init.newInstance(byteBuf, registryAccess);
+
+        final Object codec = ItemStack$OPTIONAL_STREAM_CODEC.get(null);
+        StreamEncoder$encode.invoke(codec, registryFriendlyByteBuf, nmsItem);
+
+        final int readableBytes = (int) ByteBuf$readableBytes.invoke(byteBuf);
+        final byte[] bytes = new byte[readableBytes];
+        ByteBuf$readBytes.invoke(byteBuf, bytes);
+
+        return bytes;
+    }
+
+    private static Object asNMSCopy(ItemStack bukkitItem) throws ReflectiveOperationException {
+        if (CraftItemStack$asNMSCopy == null) {
+            final Class<?> clazz = Class.forName(getCraftBukkitPackagePrefix() + ".inventory.CraftItemStack");
+            CraftItemStack$asNMSCopy = clazz.getMethod("asNMSCopy", ItemStack.class);
+        }
+        return CraftItemStack$asNMSCopy.invoke(null, bukkitItem);
+    }
+
+    private static Object getMinecraftRegistry() throws ReflectiveOperationException {
+        if (CraftRegistry$getMinecraftRegistry == null) {
+            final Class<?> clazz = Class.forName(getCraftBukkitPackagePrefix() + ".CraftRegistry");
+            CraftRegistry$getMinecraftRegistry = clazz.getMethod("getMinecraftRegistry");
+        }
+        return CraftRegistry$getMinecraftRegistry.invoke(null);
     }
 }

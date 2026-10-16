@@ -5,7 +5,6 @@ import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundSelectedSlotSyncPac
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerGamePacketListenerImplMixin {
     @Shadow public ServerPlayer player;
 
-    @Inject(method = "handleSetCarriedItem(Lnet/minecraft/network/protocol/game/ServerboundSetCarriedItemPacket;)V", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/player/Inventory;selected:I", opcode = Opcodes.PUTFIELD))
+    @Inject(method = "handleSetCarriedItem(Lnet/minecraft/network/protocol/game/ServerboundSetCarriedItemPacket;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V", shift = At.Shift.AFTER))
     private void spectatorplus$syncSelectedSlot(ServerboundSetCarriedItemPacket packet, CallbackInfo ci) {
         ServerSyncController.broadcastPacketToSpectators(this.player, new ClientboundSelectedSlotSyncPacket(this.player.getUUID(), packet.getSlot()));
     }

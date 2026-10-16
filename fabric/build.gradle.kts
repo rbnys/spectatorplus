@@ -3,6 +3,12 @@ plugins {
     id("spectatorplus.platform")
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
 description = "A Fabric mod that improves spectator mode by showing the hotbar, health, and held item of the spectated player"
 
 repositories {

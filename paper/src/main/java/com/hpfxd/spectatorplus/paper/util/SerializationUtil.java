@@ -41,12 +41,13 @@ public final class SerializationUtil {
     }
 
     public static void writeItem(ByteArrayDataOutput buf, ItemStack item) {
-        if (item.isEmpty()) {
-            buf.writeInt(0);
-        } else {
-            final byte[] itemData = item.serializeAsBytes();
-            buf.writeInt(itemData.length);
-            buf.write(itemData);
+        final byte[] data;
+        try {
+            data = ReflectionUtil.encodeItemStack(item);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to serialize item", e);
         }
+
+        buf.write(data);
     }
 }
