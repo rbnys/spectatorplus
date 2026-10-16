@@ -36,11 +36,9 @@ public class SyncedInventoryScreen extends InventoryScreen {
         final Inventory playerInventory = menu.getOwner().getInventory();
         final Inventory fakeInventory = menu.getInventory();
 
-        for (int slot = 0; slot < playerInventory.armor.size(); slot++) {
-            fakeInventory.armor.set(slot, playerInventory.armor.get(slot));
+        for (final var entry : Inventory.EQUIPMENT_SLOT_MAPPING.int2ObjectEntrySet()) {
+            fakeInventory.setItem(entry.getIntKey(), playerInventory.getItem(entry.getIntKey()));
         }
-
-        fakeInventory.offhand.set(0, playerInventory.offhand.get(0));
     }
 
     @Override

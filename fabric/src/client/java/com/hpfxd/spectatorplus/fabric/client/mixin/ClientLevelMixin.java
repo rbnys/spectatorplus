@@ -20,7 +20,7 @@ public class ClientLevelMixin {
 
     @Redirect(method = "getMarkerParticleTarget()Lnet/minecraft/world/level/block/Block;", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;getPlayerMode()Lnet/minecraft/world/level/GameType;"))
     private GameType spectatorplus$useCameraGameModeForMarkerParticleCheck(MultiPlayerGameMode instance) {
-        if (this.minecraft.cameraEntity instanceof Player player && player.isCreative()) {
+        if (this.minecraft.getCameraEntity() instanceof Player player && player.isCreative()) {
             return GameType.CREATIVE;
         }
 
@@ -29,7 +29,7 @@ public class ClientLevelMixin {
 
     @Redirect(method = "getMarkerParticleTarget()Lnet/minecraft/world/level/block/Block;", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getMainHandItem()Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack spectatorplus$useCameraForMarkerParticleCheck(LocalPlayer instance) {
-        if (this.minecraft.cameraEntity instanceof LivingEntity livingEntity) {
+        if (this.minecraft.getCameraEntity() instanceof LivingEntity livingEntity) {
             return livingEntity.getMainHandItem();
         }
         return ItemStack.EMPTY;

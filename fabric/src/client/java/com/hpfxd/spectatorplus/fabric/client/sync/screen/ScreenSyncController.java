@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -97,9 +98,9 @@ public class ScreenSyncController {
     public static <S extends Screen & MenuAccess<?>> void handleNewSyncedScreen(Minecraft mc, S screen) {
         isPendingOpen = false;
         mc.player.containerMenu = screen.getMenu();
-        mc.setScreen(screen);
+        mc.gui.setScreen(screen);
 
-        if (mc.screen != screen) {
+        if (mc.gui.screen() != screen) {
             syncedInventory = null;
             syncData.screen = null;
             return;
@@ -120,10 +121,10 @@ public class ScreenSyncController {
             return false;
         }
 
-        syncedInventory = new Inventory(spectated);
+        syncedInventory = new Inventory(spectated, new EntityEquipment());
 
         for (int i = 0; i < syncData.screen.inventoryItems.size(); i++) {
-            syncedInventory.items.set(i, syncData.screen.inventoryItems.get(i));
+            syncedInventory.getNonEquipmentItems().set(i, syncData.screen.inventoryItems.get(i));
         }
         return true;
     }

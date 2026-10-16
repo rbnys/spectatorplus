@@ -4,10 +4,10 @@ import com.google.common.collect.Iterables;
 import com.hpfxd.spectatorplus.fabric.client.mixin.PlayerMenuItemAccessor;
 import com.hpfxd.spectatorplus.fabric.client.mixin.SpectatorGuiAccessor;
 import com.hpfxd.spectatorplus.fabric.client.mixin.SpectatorMenuAccessor;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.spectator.SpectatorGui;
@@ -18,17 +18,19 @@ import net.minecraft.client.gui.spectator.categories.TeleportToPlayerMenuCategor
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.GameType;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 public class SpectatorKeybinds {
-    private static final Comparator<PlayerInfo> PROFILE_ORDER = Comparator.comparing(playerInfo -> playerInfo.getProfile().getId());
+    private static final KeyMapping.Category SPECTATORPLUS_CATEGORY = KeyMapping.Category.register(Identifier.withDefaultNamespace("spectatorplus"));
+    private static final Comparator<PlayerInfo> PROFILE_ORDER = Comparator.comparing(playerInfo -> playerInfo.getProfile().id());
 
     private static KeyMapping CLOSEST_PLAYER;
     private static KeyMapping NEXT_PLAYER;
@@ -37,22 +39,22 @@ public class SpectatorKeybinds {
     private static UUID targetCursorId;
 
     public static void init() {
-        CLOSEST_PLAYER = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        CLOSEST_PLAYER = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.spectatorplus.closestPlayer",
-                GLFW.GLFW_KEY_UP,
-                "key.categories.spectatorplus"
+                InputConstants.KEY_UP,
+                SPECTATORPLUS_CATEGORY
         ));
 
-        NEXT_PLAYER = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        NEXT_PLAYER = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.spectatorplus.nextPlayer",
-                GLFW.GLFW_KEY_RIGHT,
-                "key.categories.spectatorplus"
+                InputConstants.KEY_RIGHT,
+                SPECTATORPLUS_CATEGORY
         ));
 
-        PREVIOUS_PLAYER = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        PREVIOUS_PLAYER = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.spectatorplus.previousPlayer",
-                GLFW.GLFW_KEY_LEFT,
-                "key.categories.spectatorplus"
+                InputConstants.KEY_LEFT,
+                SPECTATORPLUS_CATEGORY
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(SpectatorKeybinds::tick);
@@ -61,14 +63,14 @@ public class SpectatorKeybinds {
     private static void tick(Minecraft mc) {
         if (mc.player != null && mc.gameMode.getPlayerMode() == GameType.SPECTATOR) {
             while (CLOSEST_PLAYER.consumeClick()) {
-                final Entity nearest = mc.level.getNearestPlayer(mc.player.getX(), mc.player.getY(), mc.player.getZ(), 256, EntitySelector.NO_SPECTATORS.and(entity -> mc.cameraEntity != entity));
+                final Entity nearest = mc.level.getNearestPlayer(mc.player.getX(), mc.player.getY(), mc.player.getZ(), 256, EntitySelector.NO_SPECTATORS.and(entity -> mc.getCameraEntity() != entity));
 
                 if (nearest != null) {
                     setTarget(mc, nearest.getUUID());
-                    mc.player.displayClientMessage(Component.translatable("spectatorplus.target.now-spectating", Component.empty().append(nearest.getDisplayName())
-                            .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY), true);
+                    mc.player.sendSystemMessage(Component.translatable("spectatorplus.target.now-spectating", Component.empty().append(nearest.getDisplayName())
+                            .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY));
                 } else {
-                    mc.player.displayClientMessage(Component.translatable("spectatorplus.target.no-closest-player").withStyle(ChatFormatting.RED), true);
+                    mc.player.sendSystemMessage(Component.translatable("spectatorplus.target.no-closest-player").withStyle(ChatFormatting.RED));
                 }
             }
 
@@ -85,12 +87,12 @@ public class SpectatorKeybinds {
     private static void targetNext(Minecraft mc, int shift) {
         final PlayerInfo target = shiftPlayerCursor(mc, shift);
 
-        if (target != null && !target.getProfile().getId().equals(mc.cameraEntity.getUUID())) {
-            setTarget(mc, target.getProfile().getId());
-            mc.player.displayClientMessage(Component.translatable("spectatorplus.target.now-spectating", Component.empty().append(mc.gui.getTabList().getNameForDisplay(target))
-                    .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY), true);
+        if (target != null && !target.getProfile().id().equals(mc.getCameraEntity().getUUID())) {
+            setTarget(mc, target.getProfile().id());
+            mc.player.sendSystemMessage(Component.translatable("spectatorplus.target.now-spectating", Component.empty().append(mc.gui.hud.getTabList().getNameForDisplay(target))
+                    .withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY));
         } else {
-            mc.player.displayClientMessage(Component.translatable("spectatorplus.target.no-player").withStyle(ChatFormatting.RED), true);
+            mc.player.sendSystemMessage(Component.translatable("spectatorplus.target.no-player").withStyle(ChatFormatting.RED));
         }
     }
 
@@ -107,7 +109,7 @@ public class SpectatorKeybinds {
         int index = -1;
 
         if (targetCursorId != null) {
-            index = Iterables.indexOf(players, player -> targetCursorId.equals(player.getProfile().getId()));
+            index = Iterables.indexOf(players, player -> targetCursorId.equals(player.getProfile().id()));
         }
 
         if (index == -1 && shift < 0) {
@@ -127,23 +129,23 @@ public class SpectatorKeybinds {
             mc.getConnection().send(new ServerboundTeleportToEntityPacket(uuid));
         }
 
-        if (SpectatorClientMod.config.keybindsOpenMenu || mc.gui.getSpectatorGui().isMenuActive()) {
+        if (SpectatorClientMod.config.keybindsOpenMenu || mc.gui.hud.getSpectatorGui().isMenuActive()) {
             selectInMenu(mc, uuid);
         }
     }
 
     private static void selectInMenu(Minecraft mc, UUID uuid) {
         final TeleportToPlayerMenuCategory category = new TeleportToPlayerMenuCategory();
-        final SpectatorMenuItem menuItem = Iterables.find(category.getItems(), item -> item instanceof PlayerMenuItem && uuid.equals(((PlayerMenuItemAccessor) item).getProfile().getId()));
+        final SpectatorMenuItem menuItem = Iterables.find(category.getItems(), item -> item instanceof PlayerMenuItem && uuid.equals(((PlayerMenuItemAccessor) item).getPlayerInfo().getProfile().id()));
 
         if (menuItem == null) {
             return;
         }
 
-        final SpectatorGui gui = mc.gui.getSpectatorGui();
+        final SpectatorGui gui = mc.gui.hud.getSpectatorGui();
         if (!gui.isMenuActive()) {
             // Activate the menu
-            gui.onMouseMiddleClick();
+            gui.onHotbarActionKeyPressed();
         }
 
         final SpectatorMenu menu = ((SpectatorGuiAccessor) gui).getMenu();

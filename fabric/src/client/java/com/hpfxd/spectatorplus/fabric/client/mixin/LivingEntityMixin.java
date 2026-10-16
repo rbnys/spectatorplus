@@ -7,11 +7,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,27 +20,11 @@ public abstract class LivingEntityMixin extends Entity {
         super(entityType, level);
     }
 
-    @Inject(method = "swing(Lnet/minecraft/world/InteractionHand;)V", at = @At("TAIL"))
-    private void spectatorplus$resetSpectatedAttackStrength(InteractionHand hand, CallbackInfo ci) {
+    @Inject(method = "swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)V", at = @At("TAIL"))
+    private void spectatorplus$resetSpectatedAttackStrength(InteractionHand hand, SwingAnimation animation, boolean shouldSwing, CallbackInfo ci) {
         final AbstractClientPlayer spectated = SpecUtil.getCameraPlayer(Minecraft.getInstance());
         if ((Object) this == spectated) {
-            if (!this.isBreakingBlock() && !this.isLookingAtBlock()) {
-                spectated.resetAttackStrengthTicker();
-            }
+            spectated.resetAttackStrengthTicker();
         }
-    }
-
-    @Unique
-    private boolean isBreakingBlock() {
-        return ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).getDestroyingBlocks().containsKey(this.getId());
-    }
-
-    @Unique
-    private boolean isLookingAtBlock() {
-        if (!(((Object) this) instanceof final Player player)) {
-            return false;
-        }
-
-        return ((GameRendererAccessor) Minecraft.getInstance().gameRenderer).invokePick(this, player.blockInteractionRange(), player.entityInteractionRange(), 1F).getType() == HitResult.Type.BLOCK;
     }
 }

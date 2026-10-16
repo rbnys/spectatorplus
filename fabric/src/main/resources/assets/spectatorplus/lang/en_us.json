@@ -34,6 +34,7 @@
   "gui.spectatorplus.config.server.autoUpdatePosition.name": "Auto-teleport spectators",
   "gui.spectatorplus.config.server.autoUpdatePosition.tooltip": "Automatically teleports spectators' bodies to their target's position\nevery second. This is a workaround to mitigate %s.",
 
+  "key.category.spectatorplus": "SpectatorPlus",
   "key.categories.spectatorplus": "SpectatorPlus",
   "key.spectatorplus.closestPlayer": "Closest Player",
   "key.spectatorplus.nextPlayer": "Next Player",

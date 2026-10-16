@@ -5,13 +5,13 @@ import com.hpfxd.spectatorplus.fabric.client.gui.screens.ItemMoveAnimation;
 import com.hpfxd.spectatorplus.fabric.client.sync.ClientSyncController;
 import com.hpfxd.spectatorplus.fabric.client.sync.screen.ScreenSyncController;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -46,35 +46,35 @@ public abstract class AbstractContainerScreenMixin {
     @Unique
     private boolean mouseMoved;
 
-    @Shadow @Final private static ResourceLocation SLOT_HIGHLIGHT_BACK_SPRITE;
-    @Shadow @Final private static ResourceLocation SLOT_HIGHLIGHT_FRONT_SPRITE;
-    @Shadow protected abstract void renderFloatingItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, String text);
+    @Shadow @Final private static Identifier SLOT_HIGHLIGHT_BACK_SPRITE;
+    @Shadow @Final private static Identifier SLOT_HIGHLIGHT_FRONT_SPRITE;
+    @Shadow protected abstract void extractFloatingItem(GuiGraphicsExtractor extractor, ItemStack stack, int x, int y, String text);
     @Shadow @Final protected AbstractContainerMenu menu;
     @Shadow @Nullable protected abstract Slot getHoveredSlot(double mouseX, double mouseY);
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
 
     @Inject(
-            method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V",
+            method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void spectatorplus$noClickingOnSyncedScreens(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci) {
+    private void spectatorplus$noClickingOnSyncedScreens(Slot slot, int slotId, int mouseButton, ContainerInput input, CallbackInfo ci) {
         if (this.spectatorplus$isSyncedScreen()) {
             ci.cancel();
         }
     }
 
     @Inject(
-            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
+            method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderLabels(Lnet/minecraft/client/gui/GuiGraphics;II)V",
+                    target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;extractLabels(Lnet/minecraft/client/gui/GuiGraphicsExtractor;II)V",
                     ordinal = 0,
                     shift = At.Shift.AFTER
             )
     )
-    private void spectatorplus$renderSyncedCursorItem(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    private void spectatorplus$renderSyncedCursorItem(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (!this.spectatorplus$isSyncedScreen()) {
             return;
         }
@@ -122,14 +122,14 @@ public abstract class AbstractContainerScreenMixin {
     }
 
     @Unique
-    private void spectatorplus$renderCursorItem(GuiGraphics guiGraphics, ItemStack stack, int cursorX, int cursorY) {
+    private void spectatorplus$renderCursorItem(GuiGraphicsExtractor guiGraphics, ItemStack stack, int cursorX, int cursorY) {
         final Slot hoverSlot = this.getHoveredSlot(cursorX + this.leftPos + 8, cursorY + this.topPos + 8);
         if (hoverSlot != null && hoverSlot.isHighlightable()) {
-            guiGraphics.blitSprite(RenderType::guiTextured, SLOT_HIGHLIGHT_BACK_SPRITE, hoverSlot.x - 4, hoverSlot.y - 4, 24, 24);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_BACK_SPRITE, hoverSlot.x - 4, hoverSlot.y - 4, 24, 24);
         }
-        this.renderFloatingItem(guiGraphics, stack, cursorX, cursorY, null);
+        this.extractFloatingItem(guiGraphics, stack, cursorX, cursorY, null);
         if (hoverSlot != null && hoverSlot.isHighlightable()) {
-            guiGraphics.blitSprite(RenderType::guiTexturedOverlay, SLOT_HIGHLIGHT_FRONT_SPRITE, hoverSlot.x - 4, hoverSlot.y - 4, 24, 24);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_FRONT_SPRITE, hoverSlot.x - 4, hoverSlot.y - 4, 24, 24);
         }
     }
 
@@ -146,7 +146,7 @@ public abstract class AbstractContainerScreenMixin {
     }
 
     @ModifyExpressionValue(
-            method = "renderTooltip(Lnet/minecraft/client/gui/GuiGraphics;II)V",
+            method = "extractTooltip(Lnet/minecraft/client/gui/GuiGraphicsExtractor;II)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;hasItem()Z")
     )
     private boolean spectatorplus$hideTooltipUntilMouseMove(boolean original) {
@@ -155,8 +155,8 @@ public abstract class AbstractContainerScreenMixin {
 
     @ModifyExpressionValue(
             method = {
-                    "renderSlotHighlightBack(Lnet/minecraft/client/gui/GuiGraphics;)V",
-                    "renderSlotHighlightFront(Lnet/minecraft/client/gui/GuiGraphics;)V"
+                    "extractSlotHighlightBack(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V",
+                    "extractSlotHighlightFront(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V"
             },
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;isHighlightable()Z", ordinal = 0)
     )

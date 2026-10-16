@@ -1,12 +1,11 @@
 plugins {
-    id("fabric-loom") version "1.8-SNAPSHOT"
+    id("fabric-loom") version "1.18-SNAPSHOT"
     id("spectatorplus.platform")
 }
 
 description = "A Fabric mod that improves spectator mode by showing the hotbar, health, and held item of the spectated player"
 
 repositories {
-    maven("https://maven.parchmentmc.org")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/")
@@ -27,21 +26,17 @@ loom {
 
 dependencies {
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-    modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${property("parchment_minecraft_version")}:${property("parchment_version")}@zip")
-    })
+    implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
 
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
 
-    include(modImplementation("me.lucko:fabric-permissions-api:${property("fabric_permissions_api_version")}")!!)
+    include(implementation("me.lucko:fabric-permissions-api:${property("fabric_permissions_api_version")}")!!)
 
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${property("cloth_config_version")}") {
-        exclude("net.fabricmc.fabric-api")
+    implementation("me.shedaniel.cloth:cloth-config-fabric:${property("cloth_config_version")}") {
+        exclude(group = "net.fabricmc.fabric-api")
     }
 
-    modImplementation("com.terraformersmc:modmenu:${property("modmenu_version")}")
+    implementation("com.terraformersmc:modmenu:${property("modmenu_version")}")
 }
 
 tasks {
@@ -59,9 +54,5 @@ tasks {
 
     jar {
         from("../LICENSE")
-    }
-
-    remapJar {
-        archiveVersion = getByName<Jar>("jar").archiveVersion
     }
 }

@@ -9,7 +9,6 @@ import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundHotbarSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundSelectedSlotSyncPacket;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
@@ -43,8 +42,8 @@ public abstract class ServerPlayerMixin extends Player {
     @Shadow public abstract boolean teleportTo(ServerLevel newLevel, double x, double y, double z, Set<Relative> relative, float yaw, float pitch, boolean resetCamera);
     @Shadow public abstract void setCamera(@Nullable Entity entityToSpectate);
 
-    public ServerPlayerMixin(Level level, BlockPos pos, float yRot, GameProfile gameProfile) {
-        super(level, pos, yRot, gameProfile);
+    public ServerPlayerMixin(Level level, GameProfile gameProfile) {
+        super(level, gameProfile);
     }
 
     @Inject(method = "doTick()V", at = @At(value = "FIELD", target = "Lnet/minecraft/server/level/ServerPlayer;lastFoodSaturationZero:Z", opcode = Opcodes.PUTFIELD))
@@ -68,7 +67,7 @@ public abstract class ServerPlayerMixin extends Player {
             ServerSyncController.sendPacket(spectator, ClientboundSelectedSlotSyncPacket.initializing(target));
 
             // Send initial map data patch packet if the target has a map in inventory
-            for (final ItemStack stack : target.getInventory().items) {
+            for (final ItemStack stack : target.getInventory().getNonEquipmentItems()) {
                 if (stack.is(Items.FILLED_MAP)) {
                     final MapId mapId = stack.get(DataComponents.MAP_ID);
                     final MapItemSavedData mapItemSavedData = MapItem.getSavedData(mapId, this.level());

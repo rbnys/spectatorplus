@@ -10,6 +10,7 @@ import com.hpfxd.spectatorplus.fabric.sync.packet.ServerboundRequestInventoryOpe
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
@@ -46,9 +47,9 @@ public abstract class MinecraftMixin {
      */
     @WrapWithCondition(
             method = "handleKeybinds()V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V", ordinal = 1)
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V")
     )
-    private boolean spectatorplus$requestSpectatorInventoryOpen(Minecraft instance, Screen guiScreen) {
+    private boolean spectatorplus$requestSpectatorInventoryOpen(Gui instance, Screen guiScreen) {
         // are we currently spectating a player?
         final AbstractClientPlayer spectated = SpecUtil.getCameraPlayer((Minecraft) (Object) this);
         if (spectated != null) {

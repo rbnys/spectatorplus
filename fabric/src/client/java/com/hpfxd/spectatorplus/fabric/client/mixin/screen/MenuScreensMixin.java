@@ -75,6 +75,6 @@ public abstract class MenuScreensMixin {
 
     @Unique
     private static boolean spectatorplus$canOverrideCurrentScreen(Minecraft mc) {
-        return mc.screen == null || ScreenSyncController.syncedScreen == mc.screen;
+        return mc.gui.screen() == null || ScreenSyncController.syncedScreen == mc.gui.screen();
     }
 }
