@@ -24,6 +24,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MinecraftMixin {
     @Inject(method = "setCameraEntity(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "TAIL"))
     private void spectatorplus$resetSyncDataOnCameraSwitch(Entity viewingEntity, CallbackInfo ci) {
+        if (viewingEntity == null) {
+            return;
+        }
         if (ClientSyncController.syncData != null && !ClientSyncController.syncData.playerId.equals(viewingEntity.getUUID())) {
             ClientSyncController.setSyncData(null);
         }
