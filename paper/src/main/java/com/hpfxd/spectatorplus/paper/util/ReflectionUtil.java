@@ -16,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 
 public class ReflectionUtil {
     private static final ReflectionRemapper REMAPPER;
@@ -85,10 +84,10 @@ public class ReflectionUtil {
     private static void internalTeleport(Object connection, Location location) throws ReflectiveOperationException {
         if (ServerGamePacketListenerImpl$internalTeleport == null) {
             final Class<?> clazz = connection.getClass();
-            final Class<?>[] parameterTypes = new Class[]{double.class, double.class, double.class, float.class, float.class, Set.class};
-            ServerGamePacketListenerImpl$internalTeleport = clazz.getMethod(REMAPPER.remapMethodName(clazz, "internalTeleport", parameterTypes), parameterTypes);
+            final Class<?>[] parameterTypes = new Class[]{double.class, double.class, double.class, float.class, float.class};
+            ServerGamePacketListenerImpl$internalTeleport = clazz.getMethod(REMAPPER.remapMethodName(clazz, "teleport", parameterTypes), parameterTypes);
         }
-        ServerGamePacketListenerImpl$internalTeleport.invoke(connection, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(), Set.of());
+        ServerGamePacketListenerImpl$internalTeleport.invoke(connection, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     private static Object constructCameraPacket(Object minecraftEntity) throws ReflectiveOperationException {

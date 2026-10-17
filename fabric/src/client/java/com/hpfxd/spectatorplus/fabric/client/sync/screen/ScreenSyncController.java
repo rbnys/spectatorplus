@@ -101,8 +101,15 @@ public class ScreenSyncController {
         mc.gui.setScreen(screen);
 
         if (mc.gui.screen() != screen) {
+            // The screen was not actually opened (e.g. another screen refused to be replaced), so reset all
+            // synced state. Clearing syncedScreen as well ensures the cursor rendering mixin never observes an
+            // inconsistent state where a synced screen is still tracked but its data has been cleared.
+            syncedScreen = null;
             syncedInventory = null;
-            syncData.screen = null;
+            syncedWindowId = Integer.MIN_VALUE;
+            if (syncData != null) {
+                syncData.screen = null;
+            }
             return;
         }
 
@@ -112,7 +119,9 @@ public class ScreenSyncController {
             syncedScreen = null;
             syncedInventory = null;
             syncedWindowId = Integer.MIN_VALUE;
-            syncData.screen = null;
+            if (syncData != null) {
+                syncData.screen = null;
+            }
         });
     }
 

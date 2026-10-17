@@ -75,7 +75,7 @@ public abstract class AbstractContainerScreenMixin {
             )
     )
     private void spectatorplus$renderSyncedCursorItem(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (!this.spectatorplus$isSyncedScreen()) {
+        if (!this.spectatorplus$isSyncedScreen() || ClientSyncController.syncData == null || ClientSyncController.syncData.screen == null) {
             return;
         }
 
