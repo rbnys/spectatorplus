@@ -30,6 +30,7 @@ public class ReflectionUtil {
     private static Field CraftContainer$delegate;
     private static Field AbstractContainerMenu$containerId;
     private static Field AbstractContainerMenu$dataSlots;
+    private static Field Player$containerMenu;
     private static Method DataSlot$get;
 
     private static Method CraftItemStack$asNMSCopy;
@@ -172,13 +173,23 @@ public class ReflectionUtil {
     }
 
     /**
-     * Retrieve the number of data slots (properties) available on a container menu.
+     * Retrieve the number of data slots (properties) available on the menu currently open for a player.
      * <p>
      * This is used to safely skip properties that cannot be applied to a replica container, which may have fewer
-     * data slots than the target container (or none at all).
+     * data slots than the target container (or none at all). Unlike {@link #getContainerMenu(InventoryView)}, this
+     * reads the menu from the player itself, which works for every view type (including the anonymous views created
+     * by {@code CraftContainer} for custom inventories).
      */
-    public static int getContainerDataSlotCount(InventoryView view) throws ReflectiveOperationException {
-        return getDataSlots(getContainerMenu(view)).size();
+    public static int getPlayerContainerDataSlotCount(Player player) throws ReflectiveOperationException {
+        final Object serverPlayer = getHandle(player);
+
+        if (Player$containerMenu == null) {
+            final Class<?> playerClass = Class.forName(REMAPPER.remapClassName("net.minecraft.world.entity.player.Player"));
+            Player$containerMenu = playerClass.getField(REMAPPER.remapFieldName(playerClass, "containerMenu"));
+        }
+
+        final Object containerMenu = Player$containerMenu.get(serverPlayer);
+        return getDataSlots(containerMenu).size();
     }
 
     /**

@@ -48,14 +48,16 @@ public sealed class ReplicaSyncedContainer extends SyncedContainer permits Craft
                 // only apply properties that actually exist on the replica. Setting a property at an index the
                 // replica does not have throws IndexOutOfBoundsException from AbstractContainerMenu#setData.
                 final Object2IntMap<InventoryView.Property> properties = ReflectionUtil.getContainerProperties(this.targetView);
-                final int spectatorDataSlots = ReflectionUtil.getContainerDataSlotCount(this.spectatorView);
+                final int spectatorDataSlots = ReflectionUtil.getPlayerContainerDataSlotCount(this.spectator);
 
                 properties.forEach((property, value) -> {
                     if (property.getId() < spectatorDataSlots) {
                         this.spectatorView.setProperty(property, value);
                     }
                 });
-            } catch (ReflectiveOperationException e) {
+            } catch (Exception e) {
+                // Only attempt once. Any failure here (reflective or otherwise) will keep failing on every tick and
+                // spam the log, so disable property syncing for this screen instead.
                 this.getPropertiesFailed = true;
                 JavaPlugin.getPlugin(SpectatorPlugin.class).getSLF4JLogger().warn("Failed to retrieve container properties for a replica container", e);
             }
