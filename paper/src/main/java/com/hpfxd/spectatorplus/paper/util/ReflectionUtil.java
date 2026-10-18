@@ -172,6 +172,16 @@ public class ReflectionUtil {
     }
 
     /**
+     * Retrieve the number of data slots (properties) available on a container menu.
+     * <p>
+     * This is used to safely skip properties that cannot be applied to a replica container, which may have fewer
+     * data slots than the target container (or none at all).
+     */
+    public static int getContainerDataSlotCount(InventoryView view) throws ReflectiveOperationException {
+        return getDataSlots(getContainerMenu(view)).size();
+    }
+
+    /**
      * Retrieve the values of all {@link InventoryView.Property}s that are applicable to an {@link InventoryView}.
      * <p>
      * This is needed as Bukkit does not have a way to get properties, only set them

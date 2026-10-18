@@ -2,6 +2,7 @@ package com.hpfxd.spectatorplus.paper.sync.handler.screen;
 
 import com.hpfxd.spectatorplus.paper.SpectatorPlugin;
 import com.hpfxd.spectatorplus.paper.util.ReflectionUtil;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -42,8 +43,18 @@ public sealed class ReplicaSyncedContainer extends SyncedContainer permits Craft
 
         if (!this.getPropertiesFailed) {
             try {
-                // Sync all data slots (called a "Property" in Bukkit)
-                ReflectionUtil.getContainerProperties(this.targetView).forEach(this.spectatorView::setProperty);
+                // Sync all data slots (called a "Property" in Bukkit). The replica container may have fewer data
+                // slots than the target (or none at all, e.g. for an ender chest replica backed by a plain chest), so
+                // only apply properties that actually exist on the replica. Setting a property at an index the
+                // replica does not have throws IndexOutOfBoundsException from AbstractContainerMenu#setData.
+                final Object2IntMap<InventoryView.Property> properties = ReflectionUtil.getContainerProperties(this.targetView);
+                final int spectatorDataSlots = ReflectionUtil.getContainerDataSlotCount(this.spectatorView);
+
+                properties.forEach((property, value) -> {
+                    if (property.getId() < spectatorDataSlots) {
+                        this.spectatorView.setProperty(property, value);
+                    }
+                });
             } catch (ReflectiveOperationException e) {
                 this.getPropertiesFailed = true;
                 JavaPlugin.getPlugin(SpectatorPlugin.class).getSLF4JLogger().warn("Failed to retrieve container properties for a replica container", e);

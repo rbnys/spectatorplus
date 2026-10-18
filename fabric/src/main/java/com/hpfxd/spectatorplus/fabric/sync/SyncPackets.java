@@ -2,6 +2,7 @@ package com.hpfxd.spectatorplus.fabric.sync;
 
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundExperienceSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundFoodSyncPacket;
+import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundHealthSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundHotbarSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundInventorySyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundScreenCursorSyncPacket;
@@ -18,6 +19,7 @@ public final class SyncPackets {
 
         PayloadTypeRegistry.clientboundPlay().register(ClientboundExperienceSyncPacket.TYPE, ClientboundExperienceSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundFoodSyncPacket.TYPE, ClientboundFoodSyncPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ClientboundHealthSyncPacket.TYPE, ClientboundHealthSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundHotbarSyncPacket.TYPE, ClientboundHotbarSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundInventorySyncPacket.TYPE, ClientboundInventorySyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundScreenCursorSyncPacket.TYPE, ClientboundScreenCursorSyncPacket.STREAM_CODEC);

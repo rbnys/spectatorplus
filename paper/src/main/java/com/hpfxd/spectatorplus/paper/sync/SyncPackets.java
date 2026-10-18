@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteArrayDataInput;
 import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundExperienceSyncPacket;
 import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundFoodSyncPacket;
+import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundHealthSyncPacket;
 import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundHotbarSyncPacket;
 import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundInventorySyncPacket;
 import com.hpfxd.spectatorplus.paper.sync.packet.ClientboundScreenCursorSyncPacket;
@@ -20,6 +21,7 @@ public final class SyncPackets {
     public static final Map<NamespacedKey, Class<? extends ClientboundSyncPacket>> CLIENTBOUND = ImmutableMap.<NamespacedKey, Class<? extends ClientboundSyncPacket>>builder()
             .put(ClientboundExperienceSyncPacket.ID, ClientboundExperienceSyncPacket.class)
             .put(ClientboundFoodSyncPacket.ID, ClientboundFoodSyncPacket.class)
+            .put(ClientboundHealthSyncPacket.ID, ClientboundHealthSyncPacket.class)
             .put(ClientboundHotbarSyncPacket.ID, ClientboundHotbarSyncPacket.class)
             .put(ClientboundInventorySyncPacket.ID, ClientboundInventorySyncPacket.class)
             .put(ClientboundScreenCursorSyncPacket.ID, ClientboundScreenCursorSyncPacket.class)

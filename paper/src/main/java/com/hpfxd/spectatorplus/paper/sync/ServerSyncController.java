@@ -7,6 +7,7 @@ import com.google.common.io.ByteStreams;
 import com.hpfxd.spectatorplus.paper.SpectatorPlugin;
 import com.hpfxd.spectatorplus.paper.sync.handler.ExperienceSyncHandler;
 import com.hpfxd.spectatorplus.paper.sync.handler.FoodSyncHandler;
+import com.hpfxd.spectatorplus.paper.sync.handler.HealthSyncHandler;
 import com.hpfxd.spectatorplus.paper.sync.handler.InventorySyncHandler;
 import com.hpfxd.spectatorplus.paper.sync.handler.MapSyncHandler;
 import com.hpfxd.spectatorplus.paper.sync.handler.SelectedSlotSyncHandler;
@@ -44,6 +45,7 @@ public class ServerSyncController implements PluginMessageListener {
         this.screenSyncHandler = new ScreenSyncHandler(plugin);
         new ExperienceSyncHandler(plugin);
         new FoodSyncHandler(plugin);
+        new HealthSyncHandler(plugin);
         this.inventorySyncHandler = new InventorySyncHandler(plugin);
         new SelectedSlotSyncHandler(plugin);
         new MapSyncHandler(plugin);

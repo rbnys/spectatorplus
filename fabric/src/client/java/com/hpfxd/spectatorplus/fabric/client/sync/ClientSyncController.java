@@ -3,6 +3,7 @@ package com.hpfxd.spectatorplus.fabric.client.sync;
 import com.hpfxd.spectatorplus.fabric.client.sync.screen.ScreenSyncController;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundExperienceSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundFoodSyncPacket;
+import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundHealthSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundHotbarSyncPacket;
 import com.hpfxd.spectatorplus.fabric.sync.packet.ClientboundSelectedSlotSyncPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
@@ -19,6 +20,7 @@ public class ClientSyncController {
     public static void init() {
         ClientPlayNetworking.registerGlobalReceiver(ClientboundExperienceSyncPacket.TYPE, ClientSyncController::handle);
         ClientPlayNetworking.registerGlobalReceiver(ClientboundFoodSyncPacket.TYPE, ClientSyncController::handle);
+        ClientPlayNetworking.registerGlobalReceiver(ClientboundHealthSyncPacket.TYPE, ClientSyncController::handle);
         ClientPlayNetworking.registerGlobalReceiver(ClientboundHotbarSyncPacket.TYPE, ClientSyncController::handle);
         ClientPlayNetworking.registerGlobalReceiver(ClientboundSelectedSlotSyncPacket.TYPE, ClientSyncController::handle);
 
@@ -44,6 +46,12 @@ public class ClientSyncController {
         }
         syncData.foodData.setFoodLevel(packet.food());
         syncData.foodData.setSaturation(packet.saturation());
+    }
+
+    private static void handle(ClientboundHealthSyncPacket packet, ClientPlayNetworking.Context context) {
+        setSyncData(packet.playerId());
+
+        syncData.health = packet.health();
     }
 
     private static void handle(ClientboundHotbarSyncPacket packet, ClientPlayNetworking.Context context) {

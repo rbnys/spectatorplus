@@ -93,6 +93,14 @@ public abstract class HudMixin {
         return spectated != null && !spectated.isCreative() && !spectated.isSpectator() && this.spectatorplus$isStatusEnabled();
     }
 
+    @Redirect(method = "extractPlayerHealth(Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;getHealth()F"))
+    private float spectatorplus$showSyncedHealth(Player instance) {
+        if (ClientSyncController.syncData != null && ClientSyncController.syncData.health >= 0.0f && SpecUtil.getCameraPlayer(this.minecraft) != null) {
+            return ClientSyncController.syncData.health;
+        }
+        return instance.getHealth();
+    }
+
     @Redirect(method = "extractHotbarAndDecorations(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;hasExperience()Z"))
     private boolean spectatorplus$renderExperience(MultiPlayerGameMode instance) {
         final AbstractClientPlayer spectated = SpecUtil.getCameraPlayer(this.minecraft);

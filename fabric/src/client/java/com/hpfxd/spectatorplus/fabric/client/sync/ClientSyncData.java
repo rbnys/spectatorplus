@@ -14,6 +14,8 @@ public class ClientSyncData {
     public int selectedHotbarSlot = -1;
     public FoodData foodData;
 
+    public float health = -1.0f;
+
     public float experienceProgress;
     public int experienceNeededForNextLevel;
     public int experienceLevel = -1;

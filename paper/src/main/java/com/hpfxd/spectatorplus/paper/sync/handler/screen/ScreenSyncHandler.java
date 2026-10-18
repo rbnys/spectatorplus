@@ -243,12 +243,17 @@ public class ScreenSyncHandler implements Listener {
         }
 
         if (event.getNewSpectatorTarget() instanceof final Player target && spectator.hasPermission(PERMISSION)) {
-            final InventoryView view = target.getOpenInventory();
+            // Re-fetch the target's open inventory when the task runs instead of capturing it now. The target may
+            // close their inventory between this event and the scheduled task, which would leave the spectator with
+            // an orphaned screen that can never be closed again.
+            Bukkit.getScheduler().runTask(this.plugin, () -> {
+                final InventoryView view = target.getOpenInventory();
 
-            // Only open if the current view is not CRAFTING or CREATIVE
-            if (view.getType() != InventoryType.CRAFTING && view.getType() != InventoryType.CREATIVE) {
-                Bukkit.getScheduler().runTask(this.plugin, () -> this.openSyncedContainer(spectator, view));
-            }
+                // Only open if the current view is not CRAFTING or CREATIVE
+                if (view.getType() != InventoryType.CRAFTING && view.getType() != InventoryType.CREATIVE) {
+                    this.openSyncedContainer(spectator, view);
+                }
+            });
         }
     }
 
